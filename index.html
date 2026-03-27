@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARNYX — Celtic War Trumpet</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=DM+Mono:wght@300;400&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&display=swap');
+
+:root {
+  --void:   #03020a;
+  --deep:   #080608;
+  --murk:   #0e0a0c;
+  --fog:    #181012;
+  --mist:   #241818;
+  /* Bronze / iron age palette */
+  --bronze0:#f0d880;  /* bright bronze */
+  --bronze1:#d4a840;  /* aged bronze */
+  --bronze2:#a07020;  /* deep bronze */
+  --bronze3:#6a4010;  /* dark bronze */
+  --bronze4:#3a2008;  /* bronze shadow */
+  --iron0:  #c8c8d8;  /* cold iron */
+  --iron1:  #9898b0;  /* dark iron */
+  --iron2:  #585870;  /* deep iron */
+  --blood0: #e82020;  /* battle red */
+  --blood1: #a01010;  /* dark blood */
+  --blood2: #600808;  /* dried blood */
+  --war:    rgba(232,32,32,.2);
+  --text:   #806860;
+  --text2:  #504040;
+  --text3:  #2a1c18;
+  --mono:  'DM Mono', monospace;
+  --serif: 'Cormorant Garamond', serif;
+  --goth:  'UnifrakturMaguntia', cursive;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%;
+  background: var(--void);
+  overflow: hidden;
+  font-family: var(--mono);
+  cursor: none;
+}
+
+#cursor {
+  position: fixed; width: 24px; height: 24px;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%,-50%);
+}
+
+#bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+#app {
+  position: relative; width: 100vw; height: 100vh;
+  display: flex; flex-direction: column; z-index: 1;
+}
+
+/* ── HEADER ── */
+#hdr {
+  flex-shrink: 0; padding: 16px 28px 12px;
+  display: flex; align-items: baseline; gap: 18px;
+  border-bottom: 1px solid var(--text3);
+  background: linear-gradient(180deg, rgba(8,6,8,.97) 0%, transparent 100%);
+  position: relative; z-index: 2;
+}
+#logo {
+  font-family: var(--goth); font-size: 34px;
+  color: var(--bronze1);
+  text-shadow: 0 0 22px rgba(212,168,64,.4), 0 0 55px rgba(160,112,32,.2);
+  letter-spacing: 5px; line-height: 1;
+}
+#logo-sub {
+  font-family: var(--serif); font-style: italic; font-size: 10px;
+  letter-spacing: 2px; color: var(--text3);
+}
+#hdr-stats { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.hstat { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--text3); text-transform: uppercase; }
+.hstat span { color: var(--text2); transition: color .1s; }
+.hstat span.lit-b  { color: var(--bronze0); text-shadow: 0 0 8px var(--bronze2); }
+.hstat span.lit-r  { color: #ff6060; text-shadow: 0 0 8px var(--blood0); }
+#power-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); transition: all .4s; }
+#power-dot.on { background: var(--bronze1); box-shadow: 0 0 8px var(--bronze1), 0 0 24px rgba(212,168,64,.5); }
+
+/* ── MAIN ── */
+#main { flex: 1; display: flex; overflow: hidden; position: relative; }
+#main::before {
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(212,168,64,.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,168,64,.012) 1px, transparent 1px);
+  background-size: 60px 50px; pointer-events: none;
+}
+
+/* ── CENTER ── */
+#center {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-start;
+  padding: 8px 16px 0; gap: 10px;
+  position: relative; z-index: 1; overflow: hidden;
+}
+
+/* ── CARNYX SVG ── */
+#carnyx-wrap {
+  width: 100%; max-width: 760px; flex-shrink: 0;
+  height: 220px; position: relative; cursor: pointer;
+}
+#carnyx-svg {
+  width: 100%; height: 100%; overflow: visible;
+  filter: drop-shadow(0 4px 24px rgba(212,168,64,.12));
+}
+
+/* Boar head blow animation */
+#carnyx-svg.blowing .boar-jaw {
+  animation: jawopen .15s ease-out forwards;
+  transform-origin: 72px 88px;
+}
+@keyframes jawopen {
+  0%   { transform: rotate(0deg); }
+  40%  { transform: rotate(8deg); }
+  100% { transform: rotate(3deg); }
+}
+#carnyx-svg.blowing .boar-tongue {
+  animation: tongueout .3s ease-out forwards;
+}
+@keyframes tongueout {
+  0%   { opacity: 0; transform: translateY(0); }
+  40%  { opacity: 1; transform: translateY(4px); }
+  100% { opacity: .6; transform: translateY(2px); }
+}
+#carnyx-svg.blowing #bell-blast {
+  animation: blastpulse .5s ease-out forwards;
+}
+@keyframes blastpulse {
+  0%   { opacity: .8; transform: scale(.6); }
+  100% { opacity: 0;  transform: scale(3); }
+}
+#carnyx-svg.sounding .carnyx-body {
+  animation: carnyxvib .04s ease-in-out infinite;
+}
+@keyframes carnyxvib {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-.8px); }
+}
+#carnyx-svg .war-glow {
+  transition: opacity .3s;
+}
+
+/* Sound blast rings */
+.blast-ring { pointer-events: none; animation: blastring .8s ease-out forwards; }
+@keyframes blastring {
+  0%   { opacity: .8; } 100% { opacity: 0; }
+}
+
+/* ── BREATH PRESSURE ── */
+#breath-section {
+  width: 100%; max-width: 760px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px;
+}
+#breath-label { font-family:var(--mono);font-size:7px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;flex-shrink:0; }
+#breath-outer {
+  flex: 1; height: 14px;
+  border: 1px solid var(--text3); border-radius: 7px;
+  background: var(--deep); overflow: hidden; cursor: ew-resize;
+}
+#breath-fill {
+  height: 100%; width: 55%;
+  border-radius: 7px;
+  background: linear-gradient(90deg, rgba(212,168,64,.25), rgba(240,216,128,.65));
+  transition: width .04s; position: relative;
+}
+#breath-fill::after {
+  content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 8px;
+  background: rgba(255,232,128,.5); filter: blur(2px); border-radius: 0 7px 7px 0;
+}
+#breath-pct { font-family:var(--mono);font-size:9px;color:var(--bronze2);flex-shrink:0;width:28px;text-align:right; }
+
+/* ── TECHNIQUE PADS ── */
+#technique-grid {
+  width: 100%; max-width: 760px; flex-shrink: 0;
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 6px;
+}
+
+.tech-pad {
+  border: 1px solid var(--text3); border-radius: 2px;
+  background: rgba(8,6,8,.7);
+  cursor: pointer; padding: 8px 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  transition: all .15s; user-select: none; overflow: hidden; position: relative;
+}
+.tech-pad::after { content:'';position:absolute;inset:0;opacity:0;transition:opacity .1s;pointer-events:none;border-radius:1px; }
+.tech-pad.v-war::after  { background: rgba(232,32,32,.1); }
+.tech-pad.v-call::after { background: rgba(212,168,64,.08); }
+.tech-pad.hit.v-war  { border-color: var(--blood0); }
+.tech-pad.hit.v-call { border-color: var(--bronze1); }
+.tech-pad.hit::after { opacity: 1; }
+.tech-pad.hold-on.v-war  { border-color: rgba(232,32,32,.4); background: rgba(232,32,32,.04); }
+.tech-pad.hold-on.v-call { border-color: rgba(212,168,64,.4); background: rgba(212,168,64,.04); }
+.tech-pad-icon { font-size: 16px; filter: grayscale(.6) brightness(.6); transition: filter .1s; pointer-events: none; }
+.tech-pad.hit .tech-pad-icon, .tech-pad.hold-on .tech-pad-icon { filter: grayscale(0) brightness(1.1); }
+.tech-pad-name { font-family:var(--serif);font-style:italic;font-size:11px;color:var(--text2);pointer-events:none;text-align:center;line-height:1.2; }
+.tech-pad.v-war.hit .tech-pad-name, .tech-pad.v-war.hold-on .tech-pad-name { color: #ff8080; }
+.tech-pad.v-call.hit .tech-pad-name, .tech-pad.v-call.hold-on .tech-pad-name { color: var(--bronze0); }
+.tech-pad-key { font-family:var(--mono);font-size:7px;color:var(--text3);pointer-events:none;letter-spacing:1px; }
+.hold-pip { position:absolute;top:5px;right:6px;width:4px;height:4px;border-radius:50%;background:var(--text3);transition:background .2s; }
+.tech-pad.hold-on .hold-pip { background: var(--bronze1); box-shadow: 0 0 4px var(--bronze1); }
+.tech-pad.hold-on.v-war .hold-pip { background: var(--blood0); box-shadow: 0 0 4px var(--blood0); }
+
+/* ── KEYBOARD ── */
+#kb-section { width:100%;max-width:760px;flex-shrink:0;position:relative; }
+#keyboard {
+  display:flex;height:78px;
+  border:1px solid var(--text3);border-radius:0 0 3px 3px;
+  overflow:hidden;position:relative;
+  background:linear-gradient(180deg,#0a0608 0%,#060404 100%);
+}
+.key{position:relative;cursor:pointer;flex-shrink:0;transition:background .04s;}
+.key.white{background:linear-gradient(180deg,#100a08 0%,#080406 100%);border-right:1px solid var(--text3);flex:1;z-index:1;}
+.key.white:hover{background:rgba(212,168,64,.05);}
+.key.white.active{background:linear-gradient(180deg,rgba(212,168,64,.42) 0%,rgba(120,72,16,.28) 100%) !important;box-shadow:inset 0 -2px 12px rgba(212,168,64,.22);}
+.key.black{background:linear-gradient(180deg,#040204 0%,#080408 100%);position:absolute;width:60%;height:62%;top:0;z-index:2;border-radius:0 0 3px 3px;border:1px solid var(--text3);border-top:none;}
+.key.black:hover{background:rgba(160,16,16,.1);}
+.key.black.active{background:rgba(160,16,16,.25) !important;}
+.key-lbl{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:7px;color:var(--text3);pointer-events:none;user-select:none;}
+.key.active .key-lbl{color:rgba(212,168,64,.45);}
+
+#oct-outer{position:absolute;left:-46px;top:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
+#oct-wheel{width:32px;height:78px;background:var(--void);border:1px solid var(--text3);border-radius:4px;overflow:hidden;cursor:ns-resize;position:relative;user-select:none;}
+#oct-wheel-inner{position:absolute;top:0;left:0;right:0;transition:transform .14s cubic-bezier(.22,.68,0,1.2);}
+.ow-slot{height:18px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;color:var(--text3);border-bottom:1px solid var(--text3);flex-shrink:0;}
+.ow-slot.cur{color:var(--bronze1);background:rgba(212,168,64,.06);}
+#oct-wheel::before,#oct-wheel::after{content:'';position:absolute;left:0;right:0;height:12px;z-index:2;pointer-events:none;}
+#oct-wheel::before{top:0;background:linear-gradient(to bottom,var(--void),transparent);}
+#oct-wheel::after{bottom:0;background:linear-gradient(to top,var(--void),transparent);}
+#oct-lbl{font-family:var(--mono);font-size:7px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
+
+/* ── WAVEFORM ── */
+#wave-bar{flex-shrink:0;height:50px;background:var(--deep);border-top:1px solid var(--text3);position:relative;z-index:2;overflow:hidden;}
+#wave-canvas{width:100%;height:100%;display:block;}
+
+/* ── RIGHT PANEL ── */
+#panel{width:210px;flex-shrink:0;border-left:1px solid var(--text3);background:linear-gradient(180deg,rgba(8,6,8,.95) 0%,rgba(6,4,6,.98) 100%);display:flex;flex-direction:column;padding:16px 14px;gap:14px;overflow-y:auto;position:relative;z-index:5;}
+.psec{display:flex;flex-direction:column;gap:7px;}
+.ptitle{font-family:var(--mono);font-size:7px;letter-spacing:3px;text-transform:uppercase;color:rgba(212,168,64,.25);padding-bottom:5px;border-bottom:1px solid rgba(212,168,64,.06);}
+.pBtn{font-family:var(--serif);font-style:italic;font-size:12px;padding:5px 10px;border:1px solid rgba(212,168,64,.14);border-radius:2px;color:rgba(212,168,64,.32);background:transparent;cursor:pointer;transition:all .15s;text-align:left;}
+.pBtn:hover{color:var(--bronze0);border-color:rgba(212,168,64,.4);}
+.pBtn.active{color:var(--bronze0);border-color:var(--bronze1);background:rgba(212,168,64,.06);text-shadow:0 0 8px rgba(212,168,64,.35);}
+.kg{display:flex;flex-direction:column;align-items:center;gap:3px;}
+canvas.knob{cursor:ns-resize;display:block;}
+.kl{font-family:var(--mono);font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(212,168,64,.22);}
+.kv{font-family:var(--mono);font-size:9px;color:rgba(212,168,64,.48);min-width:32px;text-align:center;}
+.knob-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+
+#note-display{margin-top:auto;padding-top:10px;border-top:1px solid rgba(212,168,64,.06);display:flex;flex-direction:column;align-items:center;gap:4px;}
+#disp-note{font-family:var(--goth);font-size:26px;letter-spacing:3px;color:var(--bronze1);text-shadow:0 0 14px rgba(212,168,64,.38);line-height:1;}
+#disp-freq{font-family:var(--mono);font-size:9px;color:var(--text2);letter-spacing:1px;}
+#disp-call{font-family:var(--serif);font-style:italic;font-size:11px;color:rgba(212,168,64,.3);text-align:center;line-height:1.5;}
+
+#controls{flex-shrink:0;background:linear-gradient(0deg,rgba(6,4,6,.98) 0%,transparent 100%);border-top:1px solid var(--text3);padding:9px 22px 13px;display:flex;align-items:center;gap:16px;position:relative;z-index:2;flex-wrap:wrap;}
+.cdiv{width:1px;height:30px;background:var(--text3);flex-shrink:0;}
+::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+
+<!-- Cursor: spear tip -->
+<div id="cursor">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2 L15 10 L12 8 L9 10 Z"
+      fill="rgba(212,168,64,.2)" stroke="rgba(212,168,64,.8)" stroke-width="1" stroke-linejoin="round"/>
+    <line x1="12" y1="8" x2="12" y2="22"
+      stroke="rgba(160,112,32,.55)" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="10" y1="14" x2="14" y2="14"
+      stroke="rgba(212,168,64,.3)" stroke-width=".8"/>
+  </svg>
+</div>
+
+<canvas id="bg"></canvas>
+
+<div id="app">
+  <div id="hdr">
+    <div>
+      <div id="logo">Carnyx</div>
+      <div id="logo-sub">Celtic War Trumpet · Screaming Boar · c.200 BC · Roman soldiers feared the sound</div>
+    </div>
+    <div id="hdr-stats">
+      <div class="hstat">Key <span id="hs-key">—</span></div>
+      <div class="hstat">Tone <span id="hs-tone">—</span></div>
+      <div class="hstat">Battle <span id="hs-battle">still</span></div>
+      <div id="power-dot"></div>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="center">
+
+      <!-- THE CARNYX -->
+      <div id="carnyx-wrap">
+        <svg id="carnyx-svg" viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bronze-tube" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#8a5c18"/>
+              <stop offset="20%"  stop-color="#d4a840"/>
+              <stop offset="50%"  stop-color="#f0d880"/>
+              <stop offset="80%"  stop-color="#c89828"/>
+              <stop offset="100%" stop-color="#7a4c10"/>
+            </linearGradient>
+            <linearGradient id="bronze-dark" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#5a3808"/>
+              <stop offset="50%"  stop-color="#a07020"/>
+              <stop offset="100%" stop-color="#4a2c08"/>
+            </linearGradient>
+            <radialGradient id="boar-head" cx="40%" cy="38%" r="62%">
+              <stop offset="0%"   stop-color="#c89020"/>
+              <stop offset="50%"  stop-color="#a07018"/>
+              <stop offset="100%" stop-color="#6a4010"/>
+            </radialGradient>
+            <radialGradient id="boar-snout" cx="45%" cy="45%" r="55%">
+              <stop offset="0%"   stop-color="#b07818"/>
+              <stop offset="100%" stop-color="#7a4c10"/>
+            </radialGradient>
+            <filter id="bronze-glow">
+              <feGaussianBlur stdDeviation="2" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="war-glow">
+              <feGaussianBlur stdDeviation="4" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          <!-- ══ WAR GLOW behind boar mouth ══ -->
+          <ellipse id="bell-blast" cx="75" cy="95" rx="30" ry="25"
+            fill="rgba(232,32,32,.0)" opacity="0"
+            filter="url(#war-glow)"/>
+
+          <!-- ══ CARNYX TUBE: long S-curve from mouthpiece to boar head ══ -->
+          <!-- The carnyx is held vertically — long straight tube, S-bend at top, boar head -->
+          <!-- In our horizontal layout: mouthpiece right, boar head left, tube curves up -->
+
+          <!-- Outer tube shadow -->
+          <path class="carnyx-body"
+            d="M 740 148
+               C 700 150 640 152 580 148
+               C 520 144 480 138 440 130
+               C 400 122 370 112 340 102
+               C 310 92 285 84 260 80
+               C 240 77 220 76 200 78
+               C 180 80 162 86 148 95
+               C 138 102 130 112 126 122
+               C 122 132 122 144 126 154
+               C 130 162 138 168 148 170
+               C 158 172 170 168 178 160"
+            fill="none" stroke="rgba(90,56,8,.6)" stroke-width="18" stroke-linecap="round"/>
+
+          <!-- Main tube body -->
+          <path class="carnyx-body"
+            d="M 740 148
+               C 700 150 640 152 580 148
+               C 520 144 480 138 440 130
+               C 400 122 370 112 340 102
+               C 310 92 285 84 260 80
+               C 240 77 220 76 200 78
+               C 180 80 162 86 148 95
+               C 138 102 130 112 126 122
+               C 122 132 122 144 126 154
+               C 130 162 138 168 148 170
+               C 158 172 170 168 178 160"
+            fill="none" stroke="url(#bronze-tube)" stroke-width="14" stroke-linecap="round"/>
+
+          <!-- Tube highlight -->
+          <path
+            d="M 740 144
+               C 700 146 640 148 580 144
+               C 520 140 480 134 440 126"
+            fill="none" stroke="rgba(255,240,160,.2)" stroke-width="5" stroke-linecap="round"/>
+
+          <!-- Tube seam line (hammered bronze strip) -->
+          <path
+            d="M 680 149 C 620 150 560 147 500 143 C 450 139 410 131 370 119 C 330 107 295 88 260 80"
+            fill="none" stroke="rgba(180,130,40,.3)" stroke-width="1" stroke-linecap="round"/>
+
+          <!-- Bronze ring reinforcements along tube -->
+          <g fill="none" stroke="rgba(212,168,64,.4)" stroke-width="1.5">
+            <ellipse cx="660" cy="149" rx="4" ry="7" transform="rotate(-5 660 149)"/>
+            <ellipse cx="600" cy="150" rx="4" ry="7" transform="rotate(-5 600 150)"/>
+            <ellipse cx="540" cy="147" rx="4" ry="7" transform="rotate(-8 540 147)"/>
+            <ellipse cx="480" cy="141" rx="4" ry="7" transform="rotate(-12 480 141)"/>
+            <ellipse cx="420" cy="132" rx="4" ry="7" transform="rotate(-18 420 132)"/>
+            <ellipse cx="365" cy="118" rx="4" ry="7" transform="rotate(-25 365 118)"/>
+            <ellipse cx="315" cy="101" rx="4" ry="7" transform="rotate(-32 315 101)"/>
+            <ellipse cx="275" cy="86"  rx="4" ry="7" transform="rotate(-38 275 86)"/>
+            <ellipse cx="238" cy="78"  rx="4" ry="7" transform="rotate(-45 238 78)"/>
+          </g>
+
+          <!-- ══ MOUTHPIECE (right end) ══ -->
+          <ellipse cx="745" cy="148" rx="8" ry="5"
+            fill="url(#bronze-dark)" stroke="rgba(212,168,64,.5)" stroke-width="1"/>
+          <ellipse cx="745" cy="148" rx="5" ry="3"
+            fill="rgba(20,12,4,.8)"/>
+          <!-- Mouthpiece rim -->
+          <ellipse cx="742" cy="148" rx="9" ry="6"
+            fill="none" stroke="rgba(212,168,64,.4)" stroke-width="1.5"/>
+
+          <!-- ══ BOAR HEAD (left, at top of S-curve) ══ -->
+          <!-- Head oriented facing left (mouth open, screaming) -->
+
+          <!-- Neck connector -->
+          <path d="M 148 95 C 135 88 118 84 108 88 C 98 92 94 102 96 112 C 98 120 106 126 118 128 C 128 130 140 126 148 120"
+            fill="url(#bronze-dark)" stroke="rgba(90,56,8,.5)" stroke-width="1"/>
+
+          <!-- Main skull -->
+          <path d="M 120 68
+                   C 105 62 88 60 76 64
+                   C 62 68 54 78 52 90
+                   C 50 102 56 116 68 124
+                   C 78 130 94 132 108 128
+                   C 122 124 132 112 134 100
+                   C 136 88 132 74 120 68 Z"
+            fill="url(#boar-head)" stroke="rgba(90,56,8,.45)" stroke-width="1.2"/>
+
+          <!-- Skull highlight -->
+          <path d="M 88 64 C 78 66 68 72 62 80"
+            fill="none" stroke="rgba(255,220,100,.18)" stroke-width="2" stroke-linecap="round"/>
+
+          <!-- Boar crest/ridge along top of skull -->
+          <path d="M 128 72 C 116 58 100 52 85 54 C 75 56 67 62 62 70"
+            fill="none" stroke="rgba(90,56,8,.55)" stroke-width="3" stroke-linecap="round"/>
+          <!-- Crest bristles -->
+          <g stroke="rgba(60,36,8,.6)" stroke-width=".8" stroke-linecap="round">
+            <line x1="128" y1="72" x2="131" y2="64"/>
+            <line x1="120" y1="64" x2="122" y2="56"/>
+            <line x1="110" y1="58" x2="111" y2="50"/>
+            <line x1="100" y1="54" x2="100" y2="46"/>
+            <line x1="90"  y1="54" x2="88"  y2="46"/>
+            <line x1="80"  y1="57" x2="77"  y2="50"/>
+            <line x1="70"  y1="63" x2="66"  y2="57"/>
+          </g>
+
+          <!-- Tusk (lower left) -->
+          <path d="M 54 110 C 44 114 32 112 24 106 C 16 100 18 90 26 86 C 34 82 44 86 48 94"
+            fill="url(#boar-snout)" stroke="rgba(90,56,8,.4)" stroke-width="1"/>
+          <!-- Tusk tip highlight -->
+          <path d="M 24 106 C 20 102 18 96 22 90"
+            fill="none" stroke="rgba(255,240,180,.25)" stroke-width="1.2" stroke-linecap="round"/>
+
+          <!-- Second tusk (upper) -->
+          <path d="M 52 76 C 42 70 30 68 22 72 C 14 76 14 86 22 90 C 28 92 38 90 44 84"
+            fill="url(#boar-snout)" stroke="rgba(90,56,8,.35)" stroke-width="1"/>
+
+          <!-- Snout / mouth area -->
+          <path d="M 50 88 C 38 85 28 86 20 90 C 14 94 12 102 16 108 C 20 114 30 116 40 114 C 50 112 58 106 60 98 Z"
+            fill="url(#boar-snout)" stroke="rgba(80,48,8,.45)" stroke-width="1"/>
+
+          <!-- Nostrils -->
+          <ellipse cx="25" cy="100" rx="5" ry="3.5" fill="rgba(20,10,4,.7)"/>
+          <ellipse cx="38" cy="98"  rx="4" ry="3"   fill="rgba(20,10,4,.65)"/>
+
+          <!-- ── JAW (separate, animates open on blow) ── -->
+          <g class="boar-jaw">
+            <path d="M 52 104 C 40 108 26 108 16 112 C 10 116 10 122 16 126 C 24 130 38 128 50 122 C 60 116 64 108 60 102 Z"
+              fill="url(#boar-snout)" stroke="rgba(80,48,8,.4)" stroke-width="1"/>
+            <!-- Bottom teeth -->
+            <g fill="rgba(240,220,160,.7)" stroke="rgba(160,120,40,.3)" stroke-width=".5">
+              <path d="M 22 122 L 20 130 L 26 128 Z"/>
+              <path d="M 33 124 L 32 132 L 38 130 Z"/>
+              <path d="M 44 120 L 44 128 L 49 125 Z"/>
+            </g>
+          </g>
+
+          <!-- Top teeth (in upper jaw) -->
+          <g fill="rgba(240,220,160,.7)" stroke="rgba(160,120,40,.3)" stroke-width=".5">
+            <path d="M 20 88 L 18 80 L 24 82 Z"/>
+            <path d="M 32 86 L 31 78 L 36 80 Z"/>
+            <path d="M 44 88 L 44 80 L 49 83 Z"/>
+          </g>
+
+          <!-- Tongue (hidden until blow) -->
+          <path class="boar-tongue"
+            d="M 22 108 Q 30 116 28 122 Q 26 126 24 122 Q 22 118 22 108"
+            fill="rgba(200,40,40,.8)" stroke="rgba(120,20,20,.4)" stroke-width=".8"
+            opacity="0"/>
+
+          <!-- Eye (glowing, slightly mad) -->
+          <ellipse cx="100" cy="82" rx="9" ry="8"
+            fill="rgba(20,10,4,.9)" stroke="rgba(212,168,64,.5)" stroke-width="1.2"/>
+          <ellipse cx="100" cy="82" rx="6" ry="5.5"
+            fill="rgba(180,24,8,.8)"/>
+          <ellipse cx="100" cy="82" rx="3.5" ry="3"
+            fill="rgba(8,4,4,.95)"/>
+          <circle  cx="102" cy="80" r="1.8" fill="rgba(255,200,100,.6)"/>
+          <!-- Eye war paint around it -->
+          <path d="M 92 76 Q 100 72 108 76" fill="none" stroke="rgba(160,16,8,.5)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M 92 88 Q 100 92 108 88" fill="none" stroke="rgba(160,16,8,.4)" stroke-width="1.2" stroke-linecap="round"/>
+
+          <!-- Ear (swept back, bronze with detail) -->
+          <path d="M 120 68 C 126 56 128 44 122 38 C 116 32 106 34 102 42 C 98 50 100 62 108 68"
+            fill="url(#boar-head)" stroke="rgba(90,56,8,.4)" stroke-width="1"/>
+          <!-- Ear inner -->
+          <path d="M 118 66 C 122 55 123 46 118 42 C 114 38 108 40 106 46 C 104 52 106 62 112 66"
+            fill="rgba(160,80,20,.35)"/>
+
+          <!-- Celtic knotwork engraving on skull -->
+          <g fill="none" stroke="rgba(212,168,64,.25)" stroke-width=".7">
+            <path d="M 80 75 C 84 72 88 74 86 78 C 84 82 80 82 78 78 C 76 74 78 70 82 70"/>
+            <path d="M 110 78 C 114 75 118 77 116 81 C 114 85 110 85 108 81"/>
+            <path d="M 95 100 C 99 97 103 99 101 103 C 99 107 95 107 93 103"/>
+          </g>
+
+          <!-- War paint / blood (lines across face) -->
+          <g fill="none" stroke="rgba(180,20,10,.3)" stroke-width="1.2" stroke-linecap="round">
+            <line x1="68" y1="72" x2="82" y2="86"/>
+            <line x1="72" y1="66" x2="84" y2="76"/>
+          </g>
+
+          <!-- ══ SOUND BLAST RINGS (animated by JS) ══ -->
+          <g id="blast-group"></g>
+
+          <!-- War glow (subtle red around mouth area, pulses when playing) -->
+          <ellipse class="war-glow" cx="35" cy="105" rx="35" ry="28"
+            fill="rgba(232,32,32,.0)" opacity="0" filter="url(#war-glow)"/>
+
+        </svg>
+      </div>
+
+      <!-- BREATH PRESSURE -->
+      <div id="breath-section">
+        <span id="breath-label">Breath</span>
+        <div id="breath-outer"><div id="breath-fill"></div></div>
+        <span id="breath-pct">55%</span>
+      </div>
+
+      <!-- TECHNIQUE PADS -->
+      <div id="technique-grid">
+        <div class="tech-pad v-war" data-sound="battle-cry"   data-key="q" data-hold="1"><div class="hold-pip"></div><div class="tech-pad-icon">⚔️</div><div class="tech-pad-name">Battle Cry</div><div class="tech-pad-key">Q</div></div>
+        <div class="tech-pad v-war" data-sound="charge"       data-key="w"><div class="tech-pad-icon">🐗</div><div class="tech-pad-name">Charge Call</div><div class="tech-pad-key">W</div></div>
+        <div class="tech-pad v-call" data-sound="long-note"   data-key="e" data-hold="1"><div class="hold-pip"></div><div class="tech-pad-icon">🎺</div><div class="tech-pad-name">Long Note</div><div class="tech-pad-key">E</div></div>
+        <div class="tech-pad v-call" data-sound="fanfare"     data-key="r"><div class="tech-pad-icon">🌄</div><div class="tech-pad-name">Fanfare</div><div class="tech-pad-key">R</div></div>
+        <div class="tech-pad v-war" data-sound="war-drone"    data-key="a" data-hold="1"><div class="hold-pip"></div><div class="tech-pad-icon">💀</div><div class="tech-pad-name">War Drone</div><div class="tech-pad-key">A</div></div>
+        <div class="tech-pad v-war" data-sound="scream"       data-key="s"><div class="tech-pad-icon">🗣</div><div class="tech-pad-name">Boar Scream</div><div class="tech-pad-key">S</div></div>
+        <div class="tech-pad v-call" data-sound="retreat"     data-key="d"><div class="tech-pad-icon">🌫</div><div class="tech-pad-name">Retreat</div><div class="tech-pad-key">D</div></div>
+        <div class="tech-pad v-call" data-sound="tribal"      data-key="f" data-hold="1"><div class="hold-pip"></div><div class="tech-pad-icon">🔥</div><div class="tech-pad-name">Tribal Pulse</div><div class="tech-pad-key">F</div></div>
+      </div>
+
+      <!-- KEYBOARD -->
+      <div id="kb-section" style="position:relative;">
+        <div id="oct-outer">
+          <div id="oct-wheel"><div id="oct-wheel-inner"></div></div>
+          <div id="oct-lbl">Oct</div>
+        </div>
+        <div id="keyboard"></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div id="panel">
+      <div class="psec">
+        <div class="ptitle">✦ Tone</div>
+        <button class="pBtn active" data-tone="open">Open Bore</button>
+        <button class="pBtn" data-tone="muted">Muted</button>
+        <button class="pBtn" data-tone="overblown">Overblown</button>
+        <button class="pBtn" data-tone="rattle">Rattle Tongue</button>
+      </div>
+      <div class="psec">
+        <div class="ptitle">✦ Parameters</div>
+        <div class="knob-row">
+          <div class="kg">
+            <canvas class="knob" id="k-reverb"  width="44" height="44" data-min="0"    data-max="1"   data-val="0.55" data-color="#d4a840"></canvas>
+            <div class="kl">Hall</div><div class="kv" id="v-reverb">0.55</div>
+          </div>
+          <div class="kg">
+            <canvas class="knob" id="k-bright"  width="44" height="44" data-min="0"    data-max="1"   data-val="0.65" data-color="#f0d880"></canvas>
+            <div class="kl">Bright</div><div class="kv" id="v-bright">0.65</div>
+          </div>
+        </div>
+        <div class="knob-row">
+          <div class="kg">
+            <canvas class="knob" id="k-growl"   width="44" height="44" data-min="0"    data-max="1"   data-val="0.45" data-color="#e82020"></canvas>
+            <div class="kl">Growl</div><div class="kv" id="v-growl">0.45</div>
+          </div>
+          <div class="kg">
+            <canvas class="knob" id="k-vibrato" width="44" height="44" data-min="0"    data-max="1"   data-val="0.2"  data-color="#a07020"></canvas>
+            <div class="kl">Vib</div><div class="kv" id="v-vibrato">0.20</div>
+          </div>
+        </div>
+      </div>
+      <div class="psec">
+        <div class="ptitle">✦ Sustain</div>
+        <div class="knob-row">
+          <div class="kg">
+            <canvas class="knob" id="k-attack"  width="44" height="44" data-min="0.01" data-max="1"   data-val="0.08" data-color="#c89020"></canvas>
+            <div class="kl">Rise</div><div class="kv" id="v-attack">0.08</div>
+          </div>
+          <div class="kg">
+            <canvas class="knob" id="k-release" width="44" height="44" data-min="0.05" data-max="5"   data-val="0.8"  data-color="#6a4010"></canvas>
+            <div class="kl">Fall</div><div class="kv" id="v-release">0.80</div>
+          </div>
+        </div>
+      </div>
+      <div id="note-display">
+        <div id="disp-note">—</div>
+        <div id="disp-freq">— Hz</div>
+        <div id="disp-call">the Romans wrote about<br>hearing this and being afraid</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="wave-bar"><canvas id="wave-canvas"></canvas></div>
+
+  <div id="controls">
+    <div class="kg">
+      <canvas class="knob" id="k-brass"   width="38" height="38" data-min="0" data-max="1" data-val="0.55" data-color="#d4a840"></canvas>
+      <div class="kl">Brass</div><div class="kv" id="v-brass">0.55</div>
+    </div>
+    <div class="kg">
+      <canvas class="knob" id="k-sub"     width="38" height="38" data-min="0" data-max="1" data-val="0.4"  data-color="#a07020"></canvas>
+      <div class="kl">Sub</div><div class="kv" id="v-sub">0.40</div>
+    </div>
+    <div class="kg">
+      <canvas class="knob" id="k-roar"    width="38" height="38" data-min="0" data-max="1" data-val="0.35" data-color="#e82020"></canvas>
+      <div class="kl">Roar</div><div class="kv" id="v-roar">0.35</div>
+    </div>
+    <div class="cdiv"></div>
+    <div style="font-family:var(--serif);font-style:italic;font-size:11px;color:rgba(212,168,64,.28);letter-spacing:1px;">
+      found at Tintignac · France · 2004
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CARNYX — Celtic War Trumpet
+// The boar's head screams at the sky.
+// Polybius: "there were countless numbers of trumpeters and
+// horn-blowers and since all were blowing simultaneously the
+// sound was so cacophonous that it seemed to come not only
+// from the trumpeters but from the whole surrounding countryside"
+// ══════════════════════════════════════════════════════════════
+
+let actx=null, convolver=null, analyser=null;
+const activeVoices=new Map();
+const holdNodes=new Map();
+let breathLevel=0.55;
+let breathDrag=false;
+
+function getCtx(){
+  if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+  if(actx.state==='suspended')actx.resume();
+  if(!convolver)buildReverb();
+  if(!analyser){analyser=actx.createAnalyser();analyser.fftSize=512;analyser.connect(actx.destination);}
+  return actx;
+}
+
+const P={reverb:.55,bright:.65,growl:.45,vibrato:.2,attack:.08,release:.8,brass:.55,sub:.4,roar:.35,tone:'open'};
+const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function midiToFreq(n){return 440*Math.pow(2,(n-69)/12);}
+function midiName(n){return NOTE_NAMES[n%12]+(Math.floor(n/12)-1);}
+
+const CALL_QUOTES=[
+  'the Romans wrote about\nhearing this and being afraid',
+  'the sound carries\nbefore the army',
+  'bronze throat screaming\nat the grey sky',
+  'Polybius heard it\nand never forgot',
+  'the boar knows\none note: forward',
+];
+
+// ── Reverb: open battlefield ──
+function buildReverb(){
+  const c=actx,dur=3.5,len=c.sampleRate*dur,buf=c.createBuffer(2,len,c.sampleRate);
+  for(let ch=0;ch<2;ch++){
+    const d=buf.getChannelData(ch);
+    for(let i=0;i<len;i++){
+      const env=Math.pow(1-i/len,2.2)*(0.6+0.4*Math.sin(i*.00018));
+      d[i]=(Math.random()*2-1)*env;
+      if(i<c.sampleRate*.03&&Math.random()<.005)d[i]+=(Math.random()*2-1)*.6;
+    }
+  }
+  if(convolver)try{convolver.disconnect()}catch(e){}
+  convolver=c.createConvolver();convolver.buffer=buf;convolver.connect(c.destination);
+}
+
+function routeOut(c,node){
+  const dry=c.createGain();dry.gain.value=1-P.reverb*.88;
+  const wet=c.createGain();wet.gain.value=P.reverb*.88;
+  node.connect(dry);dry.connect(analyser);
+  node.connect(wet);wet.connect(convolver);
+  return{dry,wet};
+}
+
+// ══════════════════════════════════════════════════════════════
+// CARNYX VOICE SYNTHESIS
+//
+// The carnyx is a long bronze S-curved tube (~1.8m) with a
+// flared animal-head bell. It's a natural harmonic instrument
+// (no valves) — like a long bugle. The player buzzes their lips.
+//
+// Acoustics:
+// - Long closed cylindrical bore → odd harmonics dominant
+// - Bronze material → bright metallic character with fast onset
+// - Boar-head bell → irregular resonance, slightly nasal color
+// - Rattle tongue: vibrato via tongue technique
+// - The instrument "screams" — the head has a rattle inside
+//   (confirmed from archaeological finds at Tintignac)
+// ══════════════════════════════════════════════════════════════
+function blowCarnyx(noteNum, vel=0.75){
+  if(activeVoices.has(noteNum))return;
+  const c=getCtx();
+  const freq=midiToFreq(noteNum);
+  const now=c.currentTime;
+  const vel2=vel*(0.5+breathLevel*.5);
+
+  const nodes=[],master=c.createGain();
+  master.gain.setValueAtTime(0,now);
+  master.gain.linearRampToValueAtTime(vel2*.8,now+P.attack);
+
+  // ── TONE CHARACTER ──
+  let harmonics,hAmps;
+  switch(P.tone){
+    case 'open':
+      // Full bright brass — sawtooth-like series
+      harmonics=[1,2,3,4,5,6,7,8];
+      hAmps=[.65,.45,.3,.2,.13,.08,.05,.025];
+      break;
+    case 'muted':
+      // Hand-stopped: darker, more fundamental
+      harmonics=[1,2,3,5];
+      hAmps=[.72,.32,.16,.08];
+      break;
+    case 'overblown':
+      // 2nd register: octave + bright
+      harmonics=[2,3,4,6,8,10];
+      hAmps=[.6,.42,.28,.16,.09,.05];
+      break;
+    case 'rattle':
+      // Rattle tongue: fast amplitude mod, rough
+      harmonics=[1,2,3,4,5,6];
+      hAmps=[.6,.38,.22,.14,.08,.04];
+      break;
+  }
+
+  harmonics.forEach((h,i)=>{
+    const osc=c.createOscillator();
+    osc.type=(h<=2&&P.tone!=='muted')?'sawtooth':'sine';
+    osc.frequency.value=freq*h;
+    osc.detune.value=(Math.random()-.5)*2;
+
+    // Vibrato
+    if(P.vibrato>.02){
+      const vib=c.createOscillator();vib.frequency.value=5.5+Math.random()*.5;
+      const vibG=c.createGain();vibG.gain.value=P.vibrato*6*(1.2-i*.1);
+      vib.connect(vibG);vibG.connect(osc.frequency);vib.start(now);nodes.push(vib);
+    }
+
+    // Rattle tongue: fast flutter
+    if(P.tone==='rattle'){
+      const flutter=c.createOscillator();flutter.frequency.value=22+Math.random()*8;
+      const fG=c.createGain();fG.gain.value=hAmps[i]*.4;
+      flutter.connect(fG);fG.connect(osc.detune);flutter.start(now);nodes.push(flutter);
+    }
+
+    const g=c.createGain();g.gain.value=hAmps[i]*vel2;
+    osc.connect(g);g.connect(master);osc.start(now);nodes.push(osc);
+  });
+
+  // ── BRASS BUZZ (lip vibration character) ──
+  if(P.brass>.02){
+    const buzz=c.createOscillator();buzz.type='sawtooth';buzz.frequency.value=freq;
+    buzz.detune.value=P.growl*12;
+    const ws=c.createWaveShaper();
+    const k=3+P.brass*10;
+    const curve=new Float32Array(512);
+    for(let i=0;i<512;i++){const x=i*2/512-1;curve[i]=(Math.PI+k)*x/(Math.PI+k*Math.abs(x));}
+    ws.curve=curve;
+    const bG=c.createGain();bG.gain.value=vel2*P.brass*.25;
+    buzz.connect(ws);ws.connect(bG);bG.connect(master);
+    buzz.start(now);nodes.push(buzz);
+  }
+
+  // ── GROWL: subharmonic flutter from the boar-head rattle ──
+  // The Tintignac carnyx had a bronze rattle INSIDE the boar head
+  // that vibrated sympathetically — adding a rough buzzing quality
+  if(P.growl>.02){
+    const growlOsc=c.createOscillator();growlOsc.type='sawtooth';
+    growlOsc.frequency.value=freq*.5;
+    const growlLFO=c.createOscillator();growlLFO.frequency.value=18+P.growl*25;
+    const growlG=c.createGain();growlG.gain.value=P.growl*20;
+    growlLFO.connect(growlG);growlG.connect(growlOsc.detune);
+    const gG=c.createGain();gG.gain.value=vel2*P.growl*.3;
+    gG.gain.exponentialRampToValueAtTime(.001,now+P.release*.6);
+    growlOsc.connect(gG);gG.connect(master);
+    growlOsc.start(now);growlLFO.start(now);nodes.push(growlOsc,growlLFO);
+    growlOsc.stop(now+P.release+.1);
+  }
+
+  // ── ROAR: harsh formant noise at attack ──
+  if(P.roar>.02){
+    const rLen=Math.floor(c.sampleRate*.08);
+    const rBuf=c.createBuffer(1,rLen,c.sampleRate);
+    const rd=rBuf.getChannelData(0);
+    for(let i=0;i<rLen;i++)rd[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.02));
+    const rs=c.createBufferSource();rs.buffer=rBuf;
+    const rbpf=c.createBiquadFilter();rbpf.type='bandpass';rbpf.frequency.value=freq*1.8;rbpf.Q.value=1.2;
+    const rG=c.createGain();rG.gain.value=vel2*P.roar*.5;
+    rs.connect(rbpf);rbpf.connect(rG);rG.connect(master);
+    rs.start(now);rs.stop(now+.09);nodes.push(rs);
+  }
+
+  // ── SUB bass hit ──
+  if(P.sub>.02){
+    const sub=c.createOscillator();sub.type='sine';sub.frequency.value=freq*.5;
+    const sG=c.createGain();
+    sG.gain.setValueAtTime(vel2*P.sub*.4,now+.002);
+    sG.gain.exponentialRampToValueAtTime(.001,now+P.release*.5);
+    sub.connect(sG);sG.connect(master);sub.start(now);sub.stop(now+P.release*.55);nodes.push(sub);
+  }
+
+  // ── FILTER ──
+  const lpf=c.createBiquadFilter();lpf.type='lowpass';
+  lpf.frequency.value=400+P.bright*7000;lpf.Q.value=1.1;
+  master.connect(lpf);
+
+  const r=routeOut(c,lpf);
+  activeVoices.set(noteNum,{master,lpf,nodes,...r});
+  updateDisplay(noteNum,freq);
+  animateCarnyx(true);
+  addBlastRings();
+  document.getElementById('power-dot').classList.add('on');
+}
+
+function stopNote(noteNum){
+  const v=activeVoices.get(noteNum);if(!v)return;
+  const c=actx,now=c.currentTime;
+  v.master.gain.setTargetAtTime(0,now,P.release*.35);
+  v.lpf.frequency.exponentialRampToValueAtTime(80,now+P.release*.4);
+  setTimeout(()=>{
+    v.nodes.forEach(n=>{try{n.stop()}catch(e){}});
+    try{v.dry?.disconnect();v.wet?.disconnect();}catch(e){}
+  },(P.release*1.2+.4)*1000);
+  activeVoices.delete(noteNum);
+  if(activeVoices.size===0&&holdNodes.size===0){
+    animateCarnyx(false);
+    document.getElementById('power-dot').classList.remove('on');
+    document.getElementById('hs-battle').textContent='still';
+    document.getElementById('hs-battle').className='';
+  }
+}
+
+function animateCarnyx(on){
+  const svg=document.getElementById('carnyx-svg');
+  if(on){
+    svg.classList.add('blowing');
+    setTimeout(()=>{svg.classList.remove('blowing');svg.classList.add('sounding');},300);
+    // War glow
+    const wg=svg.querySelector('.war-glow');
+    if(wg){wg.setAttribute('fill','rgba(232,32,32,.15)');wg.setAttribute('opacity','1');}
+  } else {
+    svg.classList.remove('blowing','sounding');
+    const wg=svg.querySelector('.war-glow');
+    if(wg){wg.setAttribute('opacity','0');}
+  }
+}
+
+function addBlastRings(){
+  const bg=document.getElementById('blast-group');
+  for(let r=0;r<3;r++){
+    const el=document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+    el.setAttribute('cx','35');el.setAttribute('cy','105');
+    el.setAttribute('rx',15+r*12);el.setAttribute('ry',12+r*9);
+    el.setAttribute('fill','none');
+    el.setAttribute('stroke',r===0?'rgba(232,32,32,.6)':'rgba(212,168,64,.4)');
+    el.setAttribute('stroke-width','1');
+    el.setAttribute('class','blast-ring');
+    el.style.animationDelay=(r*.12)+'s';
+    bg.appendChild(el);
+    setTimeout(()=>el.remove(),1200);
+  }
+}
+
+function updateDisplay(noteNum,freq){
+  const name=NOTE_NAMES[noteNum%12];
+  document.getElementById('disp-note').textContent=name;
+  document.getElementById('disp-freq').textContent=Math.round(freq)+' Hz';
+  document.getElementById('hs-key').textContent=name+(Math.floor(noteNum/12)-1);
+  document.getElementById('hs-tone').textContent=P.tone;
+  document.getElementById('hs-battle').textContent='SOUNDING';
+  document.getElementById('hs-battle').className='lit-r';
+  ['hs-key','hs-tone'].forEach(id=>{
+    const el=document.getElementById(id);el.className='lit-b';
+    clearTimeout(el._t);el._t=setTimeout(()=>el.className='',500);
+  });
+  document.getElementById('disp-call').innerHTML=CALL_QUOTES[Math.floor(Math.random()*CALL_QUOTES.length)].replace('\n','<br>');
+}
+
+// ══════════════════════════════════════════════════════════════
+// TECHNIQUE PADS
+// ══════════════════════════════════════════════════════════════
+const TECH_SYNTHS={
+  'battle-cry':c=>{
+    // Rising war cry, held
+    const now=c.currentTime,nodes=[],master=c.createGain();master.gain.value=0;
+    master.gain.linearRampToValueAtTime(.7,now+.15);
+    const base=110;
+    [1,2,3,4,5].forEach((h,i)=>{
+      const osc=c.createOscillator();osc.type=h<=2?'sawtooth':'sine';osc.frequency.value=base*h;
+      const lfo=c.createOscillator();lfo.frequency.value=.4+i*.08;
+      const lG=c.createGain();lG.gain.value=8+i*2;
+      lfo.connect(lG);lG.connect(osc.frequency);
+      const g=c.createGain();g.gain.value=[.6,.4,.25,.15,.08][i]*.8;
+      osc.connect(g);g.connect(master);osc.start(now);lfo.start(now);nodes.push(osc,lfo);
+    });
+    const growl=c.createOscillator();growl.type='sawtooth';growl.frequency.value=55;
+    const gLFO=c.createOscillator();gLFO.frequency.value=25;
+    const gG2=c.createGain();gG2.gain.value=20;
+    gLFO.connect(gG2);gG2.connect(growl.detune);
+    const gG=c.createGain();gG.gain.value=.25;
+    growl.connect(gG);gG.connect(master);growl.start(now);gLFO.start(now);nodes.push(growl,gLFO);
+    const lpf=c.createBiquadFilter();lpf.type='lowpass';lpf.frequency.value=3000;
+    master.connect(lpf);routeOut(c,lpf);
+    return{nodes,master};
+  },
+  'charge':c=>{
+    // Short rising fanfare burst
+    const now=c.currentTime;
+    const freqs=[110,138,165,220,276,220,165];
+    freqs.forEach((f,i)=>{
+      setTimeout(()=>{
+        const c2=getCtx();
+        const osc=c2.createOscillator();osc.type='sawtooth';osc.frequency.value=f;
+        const g=c2.createGain();g.gain.value=.5+Math.random()*.2;
+        g.gain.exponentialRampToValueAtTime(.001,c2.currentTime+.18);
+        osc.connect(g);routeOut(c2,g);osc.start(c2.currentTime);osc.stop(c2.currentTime+.2);
+      },i*90);
+    });
+    animateCarnyx(true);setTimeout(()=>animateCarnyx(false),700);
+    return null;
+  },
+  'long-note':c=>{
+    const now=c.currentTime,nodes=[],master=c.createGain();master.gain.value=0;
+    master.gain.linearRampToValueAtTime(.65,now+.12);
+    const freq=110;
+    [1,2,3,4,5,6].forEach((h,i)=>{
+      const osc=c.createOscillator();osc.type=h===1?'sawtooth':'sine';osc.frequency.value=freq*h;
+      const vib=c.createOscillator();vib.frequency.value=4.8+i*.1;
+      const vG=c.createGain();vG.gain.value=5;
+      vib.connect(vG);vG.connect(osc.frequency);
+      const g=c.createGain();g.gain.value=[.6,.35,.22,.12,.07,.04][i];
+      osc.connect(g);g.connect(master);osc.start(now);vib.start(now);nodes.push(osc,vib);
+    });
+    const lpf=c.createBiquadFilter();lpf.type='lowpass';lpf.frequency.value=3500;
+    master.connect(lpf);routeOut(c,lpf);
+    return{nodes,master};
+  },
+  'fanfare':c=>{
+    const pattern=[110,138,165,138,110,165,220,165,138,165,220,276];
+    pattern.forEach((f,i)=>{
+      setTimeout(()=>{
+        const c2=getCtx();
+        const osc=c2.createOscillator();osc.type='sawtooth';osc.frequency.value=f;
+        const g=c2.createGain();g.gain.value=.55;g.gain.exponentialRampToValueAtTime(.001,c2.currentTime+.2);
+        osc.connect(g);routeOut(c2,g);osc.start(c2.currentTime);osc.stop(c2.currentTime+.22);
+      },i*100);
+    });
+    return null;
+  },
+  'war-drone':c=>{
+    const now=c.currentTime,nodes=[],master=c.createGain();master.gain.value=0;
+    master.gain.linearRampToValueAtTime(.55,now+.8);
+    [55,82,110,165].forEach((f,i)=>{
+      const osc=c.createOscillator();osc.type=i===0?'sawtooth':'sine';osc.frequency.value=f;
+      const lfo=c.createOscillator();lfo.frequency.value=.05+i*.02;
+      const lG=c.createGain();lG.gain.value=6;
+      lfo.connect(lG);lG.connect(osc.frequency);
+      const g=c.createGain();g.gain.value=[.55,.3,.18,.1][i];
+      osc.connect(g);g.connect(master);osc.start(now);lfo.start(now);nodes.push(osc,lfo);
+    });
+    const lpf=c.createBiquadFilter();lpf.type='lowpass';lpf.frequency.value=2000;
+    master.connect(lpf);routeOut(c,lpf);
+    return{nodes,master};
+  },
+  'scream':c=>{
+    // The boar screams: short explosive blast with high shriek
+    const now=c.currentTime;
+    const osc=c.createOscillator();osc.type='sawtooth';
+    osc.frequency.setValueAtTime(80,now);
+    osc.frequency.exponentialRampToValueAtTime(660,now+.08);
+    osc.frequency.exponentialRampToValueAtTime(220,now+.25);
+    const g=c.createGain();
+    g.gain.setValueAtTime(.8,now);g.gain.exponentialRampToValueAtTime(.001,now+.3);
+    const ws=c.createWaveShaper();
+    const k=15;const curve=new Float32Array(512);
+    for(let i=0;i<512;i++){const x=i*2/512-1;curve[i]=(Math.PI+k)*x/(Math.PI+k*Math.abs(x));}
+    ws.curve=curve;osc.connect(ws);ws.connect(g);routeOut(c,g);
+    osc.start(now);osc.stop(now+.35);
+    animateCarnyx(true);setTimeout(()=>animateCarnyx(false),400);
+    return null;
+  },
+  'retreat':c=>{
+    const now=c.currentTime;
+    const pattern=[220,165,138,110,82];
+    pattern.forEach((f,i)=>{
+      setTimeout(()=>{
+        const c2=getCtx();
+        const osc=c2.createOscillator();osc.type='sawtooth';osc.frequency.value=f;
+        const g=c2.createGain();g.gain.value=.45-i*.06;g.gain.exponentialRampToValueAtTime(.001,c2.currentTime+.4);
+        osc.connect(g);routeOut(c2,g);osc.start(c2.currentTime);osc.stop(c2.currentTime+.45);
+      },i*180);
+    });
+    return null;
+  },
+  'tribal':c=>{
+    const now=c.currentTime,nodes=[],master=c.createGain();master.gain.value=.5;
+    let t=now;
+    // Rhythmic pulse: the battle march
+    const pattern=[1,.5,.5,1,.5,.5,1,1];
+    pattern.forEach(dur=>{
+      const osc=c.createOscillator();osc.type='sawtooth';osc.frequency.value=110;
+      const g=c.createGain();
+      g.gain.setValueAtTime(.55,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*.4);
+      osc.connect(g);g.connect(master);osc.start(t);osc.stop(t+dur*.45);nodes.push(osc);
+      t+=dur*.5;
+    });
+    const lpf=c.createBiquadFilter();lpf.type='lowpass';lpf.frequency.value=2500;
+    master.connect(lpf);routeOut(c,lpf);
+    return{nodes,master};
+  },
+};
+
+function triggerPad(padEl,sound){
+  const c=getCtx();
+  const isHold=padEl.dataset.hold==='1';
+  if(isHold&&holdNodes.has(sound)){
+    const h=holdNodes.get(sound);
+    h.master.gain.setTargetAtTime(0,c.currentTime,.4);
+    setTimeout(()=>h.nodes.forEach(n=>{try{n.stop()}catch(e){}}),2500);
+    holdNodes.delete(sound);padEl.classList.remove('hold-on');
+    if(holdNodes.size===0&&activeVoices.size===0){animateCarnyx(false);document.getElementById('power-dot').classList.remove('on');}
+    return;
+  }
+  const fn=TECH_SYNTHS[sound];if(!fn)return;
+  const result=fn(c);
+  if(isHold&&result){holdNodes.set(sound,result);padEl.classList.add('hold-on');}
+  padEl.classList.add('hit');clearTimeout(padEl._t);padEl._t=setTimeout(()=>padEl.classList.remove('hit'),160);
+  document.getElementById('power-dot').classList.add('on');
+  document.getElementById('hs-battle').textContent='SOUNDING';
+  document.getElementById('hs-battle').className='lit-r';
+}
+
+document.querySelectorAll('.tech-pad').forEach(pad=>{
+  pad.addEventListener('mousedown',e=>{e.preventDefault();getCtx();triggerPad(pad,pad.dataset.sound);});
+  pad.addEventListener('touchstart',e=>{e.preventDefault();getCtx();triggerPad(pad,pad.dataset.sound);},{passive:false});
+});
+
+// ── Breath bar ──
+(function(){
+  const outer=document.getElementById('breath-outer');let drag=false;
+  function u(x){const r=outer.getBoundingClientRect();breathLevel=Math.max(0,Math.min(1,(x-r.left)/r.width));document.getElementById('breath-fill').style.width=(breathLevel*100)+'%';document.getElementById('breath-pct').textContent=Math.round(breathLevel*100)+'%';}
+  outer.addEventListener('mousedown',e=>{drag=true;u(e.clientX);e.preventDefault();});
+  window.addEventListener('mousemove',e=>{if(drag)u(e.clientX);});
+  window.addEventListener('mouseup',()=>{drag=false;});
+  outer.addEventListener('touchstart',e=>{drag=true;u(e.touches[0].clientX);e.preventDefault();},{passive:false});
+  window.addEventListener('touchmove',e=>{if(drag)u(e.touches[0].clientX);},{passive:false});
+  window.addEventListener('touchend',()=>{drag=false;});
+})();
+
+// ── Keyboard ──
+const WHITE_KEYS=[0,2,4,5,7,9,11],BLACK_SLOTS=[1,3,null,6,8,10,null];
+const KB_WHITE={a:0,s:1,d:2,f:3,g:4,h:5,j:6,k:7};
+const KB_BLACK={w:0,e:1,t:3,y:4,u:5};
+const PAD_KB={q:'battle-cry',w:'charge',e:'long-note',r:'fanfare',a:'war-drone',s:'scream',d:'retreat',f:'tribal'};
+const PAD_MAP={};document.querySelectorAll('.tech-pad').forEach(p=>{PAD_MAP[p.dataset.key]=p;});
+let kbOct=3;const OMIN=1,OMAX=6,SH=18;
+
+function buildKB(){
+  const el=document.getElementById('keyboard');el.innerHTML='';
+  const base=kbOct*12+12;
+  for(let i=0;i<8;i++){const n=base+WHITE_KEYS[i%7];const wk=document.createElement('div');wk.className='key white';wk.dataset.note=n;wk.innerHTML=`<span class="key-lbl">${'ASDFGHJK'[i]}</span>`;el.appendChild(wk);}
+  requestAnimationFrame(()=>{
+    el.querySelectorAll('.key.white').forEach((wk,i)=>{const slot=BLACK_SLOTS[i%7];if(slot==null)return;const n=base+slot;const bk=document.createElement('div');bk.className='key black';bk.dataset.note=n;bk.style.left=(wk.offsetLeft+wk.offsetWidth*.6)+'px';const lbls=['W','E','','T','Y','U',''];if(lbls[i])bk.innerHTML=`<span class="key-lbl">${lbls[i]}</span>`;el.appendChild(bk);});
+    el.querySelectorAll('.key').forEach(k=>{const n=parseInt(k.dataset.note);k.addEventListener('mousedown',e=>{e.preventDefault();getCtx();blowCarnyx(n,0.6+breathLevel*.4);k.classList.add('active');});k.addEventListener('mouseup',()=>{stopNote(n);k.classList.remove('active');});k.addEventListener('mouseleave',()=>{if(activeVoices.has(n)){stopNote(n);k.classList.remove('active');}});k.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();getCtx();blowCarnyx(n,0.6+breathLevel*.4);k.classList.add('active');},{passive:false});k.addEventListener('touchend',e=>{e.preventDefault();stopNote(n);k.classList.remove('active');},{passive:false});});
+  });
+}
+function buildOctWheel(){
+  const inner=document.getElementById('oct-wheel-inner');inner.innerHTML='';
+  for(let o=OMAX;o>=OMIN;o--){const s=document.createElement('div');s.className='ow-slot'+(o===kbOct?' cur':'');s.textContent='C'+o;s.dataset.oct=o;inner.appendChild(s);}
+  scrollOW();
+}
+function scrollOW(){
+  const inner=document.getElementById('oct-wheel-inner');
+  const wH=document.getElementById('oct-wheel').clientHeight||78;
+  inner.style.transform=`translateY(${wH/2-SH/2-(OMAX-kbOct)*SH}px)`;
+  inner.querySelectorAll('.ow-slot').forEach(s=>s.classList.toggle('cur',parseInt(s.dataset.oct)===kbOct));
+}
+(function(){const wh=document.getElementById('oct-wheel');let sy=null,so=null;wh.addEventListener('mousedown',e=>{sy=e.clientY;so=kbOct;e.preventDefault();});document.addEventListener('mousemove',e=>{if(sy===null)return;const d=Math.round((sy-e.clientY)/SH);const n=Math.max(OMIN,Math.min(OMAX,so+d));if(n!==kbOct){kbOct=n;scrollOW();buildKB();}});document.addEventListener('mouseup',()=>{sy=null;});wh.addEventListener('wheel',e=>{e.preventDefault();kbOct=Math.max(OMIN,Math.min(OMAX,kbOct+(e.deltaY>0?-1:1)));scrollOW();buildKB();},{passive:false});wh.addEventListener('click',e=>{const s=e.target.closest('.ow-slot');if(s){kbOct=parseInt(s.dataset.oct);scrollOW();buildKB();}});})();
+
+document.addEventListener('keydown',e=>{
+  if(e.repeat||e.target.tagName==='INPUT')return;
+  const key=e.key.toLowerCase();
+  if(key==='z'){kbOct=Math.max(OMIN,kbOct-1);scrollOW();buildKB();return;}
+  if(key==='x'){kbOct=Math.min(OMAX,kbOct+1);scrollOW();buildKB();return;}
+  if(PAD_KB[key]&&PAD_MAP[key]){getCtx();triggerPad(PAD_MAP[key],PAD_KB[key]);return;}
+  const base=kbOct*12+12;let n=null;
+  if(KB_WHITE[key]!==undefined)n=base+WHITE_KEYS[KB_WHITE[key]];
+  else if(KB_BLACK[key]!==undefined){const s=BLACK_SLOTS[KB_BLACK[key]];if(s!=null)n=base+s;}
+  if(n!==null&&!activeVoices.has(n)){getCtx();blowCarnyx(n,0.6+breathLevel*.4);document.getElementById('keyboard')?.querySelectorAll('.key').forEach(k=>{if(parseInt(k.dataset.note)===n)k.classList.add('active');});}
+});
+document.addEventListener('keyup',e=>{
+  const key=e.key.toLowerCase();const base=kbOct*12+12;let n=null;
+  if(KB_WHITE[key]!==undefined)n=base+WHITE_KEYS[KB_WHITE[key]];
+  else if(KB_BLACK[key]!==undefined){const s=BLACK_SLOTS[KB_BLACK[key]];if(s!=null)n=base+s;}
+  if(n!==null){stopNote(n);document.getElementById('keyboard')?.querySelectorAll('.key').forEach(k=>{if(parseInt(k.dataset.note)===n)k.classList.remove('active');});}
+});
+
+// ── Panel buttons ──
+document.querySelectorAll('[data-tone]').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('[data-tone]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');P.tone=btn.dataset.tone;});});
+
+// ── Knobs ──
+function setupKnobs(){
+  document.querySelectorAll('canvas.knob').forEach(canvas=>{
+    const id=canvas.id,min=parseFloat(canvas.dataset.min),max=parseFloat(canvas.dataset.max);
+    let val=parseFloat(canvas.dataset.val);const color=canvas.dataset.color||'#d4a840';
+    const vKey='v-'+id.replace('k-','');const valEl=document.getElementById(vKey);if(!valEl)return;
+    function draw(){
+      const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height,cx=w/2,cy=h/2,r=w*.38;
+      ctx.clearRect(0,0,w,h);
+      const sA=Math.PI*.75,eA=Math.PI*2.25,t=(val-min)/(max-min),cA=sA+t*(eA-sA);
+      ctx.beginPath();ctx.arc(cx,cy,r,sA,eA);ctx.strokeStyle='rgba(212,168,64,.1)';ctx.lineWidth=3;ctx.lineCap='round';ctx.stroke();
+      ctx.beginPath();ctx.arc(cx,cy,r,sA,cA);ctx.strokeStyle=color;ctx.lineWidth=3;ctx.shadowColor=color;ctx.shadowBlur=5;ctx.stroke();ctx.shadowBlur=0;
+      const dx=cx+r*Math.cos(cA),dy=cy+r*Math.sin(cA);
+      ctx.beginPath();ctx.arc(dx,dy,2.5,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+      ctx.beginPath();ctx.arc(cx,cy,3,0,Math.PI*2);ctx.fillStyle='#080608';ctx.fill();
+      ctx.beginPath();ctx.arc(cx,cy,1.5,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+    }
+    let dragY=null,dragVal=null;
+    canvas.addEventListener('mousedown',e=>{dragY=e.clientY;dragVal=val;e.preventDefault();});
+    document.addEventListener('mousemove',e=>{if(dragY===null)return;val=Math.max(min,Math.min(max,dragVal+(dragY-e.clientY)*(max-min)/130));draw();onKnob(id,val,valEl);});
+    document.addEventListener('mouseup',()=>{dragY=null;});
+    draw();onKnob(id,val,valEl);
+  });
+}
+function onKnob(id,val,el){
+  const vt=val.toFixed(2);
+  const map={
+    'k-reverb':  v=>{P.reverb=v;  el.textContent=vt;},
+    'k-bright':  v=>{P.bright=v;  el.textContent=vt;},
+    'k-growl':   v=>{P.growl=v;   el.textContent=vt;},
+    'k-vibrato': v=>{P.vibrato=v; el.textContent=vt;},
+    'k-attack':  v=>{P.attack=v;  el.textContent=vt;},
+    'k-release': v=>{P.release=v; el.textContent=vt;},
+    'k-brass':   v=>{P.brass=v;   el.textContent=vt;},
+    'k-sub':     v=>{P.sub=v;     el.textContent=vt;},
+    'k-roar':    v=>{P.roar=v;    el.textContent=vt;},
+  };
+  if(map[id])map[id](val);
+}
+
+// ── Waveform ──
+const waveCanvas=document.getElementById('wave-canvas');
+const wCtx=waveCanvas.getContext('2d');
+function resizeWave(){waveCanvas.width=waveCanvas.offsetWidth;waveCanvas.height=waveCanvas.offsetHeight;}
+function drawWave(){
+  requestAnimationFrame(drawWave);
+  const W=waveCanvas.width,H=waveCanvas.height;
+  wCtx.clearRect(0,0,W,H);
+  if(!analyser)return;
+  const buf=new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteTimeDomainData(buf);
+  const grad=wCtx.createLinearGradient(0,0,W,0);
+  grad.addColorStop(0,'rgba(212,168,64,.0)');
+  grad.addColorStop(.15,'rgba(212,168,64,.6)');
+  grad.addColorStop(.5,'rgba(240,216,128,.65)');
+  grad.addColorStop(.75,'rgba(232,32,32,.5)');
+  grad.addColorStop(1,'rgba(160,16,8,.0)');
+  wCtx.strokeStyle=grad;wCtx.lineWidth=1.4;
+  wCtx.shadowColor='rgba(212,168,64,.4)';wCtx.shadowBlur=5;
+  wCtx.beginPath();
+  const step=W/buf.length;
+  for(let i=0;i<buf.length;i++){const x=i*step,y=(buf[i]/128-1)*(H*.44)+H/2;i===0?wCtx.moveTo(x,y):wCtx.lineTo(x,y);}
+  wCtx.stroke();wCtx.shadowBlur=0;
+}
+
+// ── Background: grey mist battlefield, crows, distant fire ──
+const bgCanvas=document.getElementById('bg');
+const bgCtx=bgCanvas.getContext('2d');
+let bgT=0,bgParticles=[];
+function initBG(){
+  bgCanvas.width=window.innerWidth;bgCanvas.height=window.innerHeight;
+  bgParticles=Array.from({length:50},()=>({
+    x:Math.random()*bgCanvas.width,y:Math.random()*bgCanvas.height,
+    r:Math.random()*1.2+.2,sp:Math.random()*.1+.015,
+    o:Math.random()*.1+.01,t:Math.random()*Math.PI*2,
+    drift:(Math.random()-.5)*.25,
+    type:Math.random()>.7?'ember':'ash',
+  }));
+}
+function drawBG(){
+  requestAnimationFrame(drawBG);
+  const W=bgCanvas.width,H=bgCanvas.height;
+  bgCtx.clearRect(0,0,W,H);
+  bgT+=.006;
+  // Dark grey-brown sky
+  const sky=bgCtx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#040204');sky.addColorStop(.4,'#080406');sky.addColorStop(.7,'#100806');sky.addColorStop(1,'#0e0604');
+  bgCtx.fillStyle=sky;bgCtx.fillRect(0,0,W,H);
+  // Distant fire glow on horizon
+  const fireG=bgCtx.createRadialGradient(W*.5,H*.75,0,W*.5,H*.75,W*.4);
+  fireG.addColorStop(0,'rgba(200,80,8,.06)');fireG.addColorStop(1,'rgba(200,80,8,0)');
+  bgCtx.fillStyle=fireG;bgCtx.fillRect(0,0,W,H);
+  // Particles: embers and ash
+  bgParticles.forEach(p=>{
+    p.t+=p.sp*.016;
+    p.x+=p.drift+Math.sin(p.t*.5)*.2;
+    p.y-=p.sp*.3;
+    if(p.y<-4){p.y=H+4;p.x=Math.random()*W;}
+    const fl=p.o*(0.5+0.5*Math.sin(p.t*2));
+    bgCtx.beginPath();bgCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    bgCtx.fillStyle=p.type==='ember'?`rgba(200,100,20,${fl})`:`rgba(160,140,120,${fl*.5})`;
+    bgCtx.fill();
+  });
+}
+
+const cursor=document.getElementById('cursor');
+document.addEventListener('mousemove',e=>{cursor.style.left=e.clientX+'px';cursor.style.top=e.clientY+'px';});
+window.addEventListener('resize',()=>{resizeWave();initBG();});
+
+setupKnobs();
+resizeWave();initBG();drawBG();drawWave();
+buildKB();buildOctWheel();
+</script>
+</body>
+</html>
